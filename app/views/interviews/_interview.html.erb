@@ -12,13 +12,8 @@
   <p>
     <strong>Participants:</strong>
     <%=
-      participant_id = interview.interview_participant_mappings.pluck(:participants_id)
-      participants = Participant.find(participant_id)
-      participants_name = []
-      participants.each { |participant|
-        participants_name.append(participant.name)
-      }
-      participants_name
+      participant_ids = interview.interview_participant_mappings.pluck(:participants_id)
+      get_participant_names(participant_ids)
     %>
   </p>
 </div>
