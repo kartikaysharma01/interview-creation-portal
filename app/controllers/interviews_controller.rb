@@ -54,23 +54,24 @@ class InterviewsController < ApplicationController
         @interview.errors.add(:participants, "not found")
         response_error(:bad_request) and return
       end
+      # check if any selected participants time clashes
       participant.interview_participant_mappings.each { |interview_participant_mapping|
         interview = interview_participant_mapping.interview
         if time_overlap(interview[:start_time], interview[:end_time], interview_params[:start_time], interview_params[:end_time])
-          @interview.errors.add(:participants, "Interview clash for participant" + participant[:name] + "with interview id" + interview[:id])
+          @interview.errors.add('Interview Clash: ', "Participant " + participant[:name] + " has another interview between " +
+          interview[:start_time].to_s + " - " +  interview[:end_time].to_s + " for interview id " + interview[:id].to_s)
           response_error(:conflict) and return
         end
       }
       participants.append(participant)
     }
 
-    @interview.save
     # binding.break
     participants.each { |participant|
       binding.break
-      InterviewParticipantMapping.create(participant: participant, interview: @interview)
+      InterviewParticipantMapping.new(participant: participant, interview: @interview)
     }
-
+    @interview.save
     response_success
   end
 
