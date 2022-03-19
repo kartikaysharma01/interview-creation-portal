@@ -49,6 +49,7 @@ class InterviewsController < ApplicationController
 
     participant_ids.each { |participant_id|
       participant = Participant.find(participant_id)
+      # this check isn't actually needed but good to have
       unless participant
         @interview.errors.add(:participants, "not found")
         response_error(:bad_request) and return
