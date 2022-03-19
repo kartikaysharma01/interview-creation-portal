@@ -1,3 +1,3 @@
 class Interview < ApplicationRecord
-  has_many :articipants, class_name: 'InterviewParticipantMapping', foreign_key: 'interviews_id'
+  has_many :interview_participant_mappings, class_name: 'InterviewParticipantMapping', foreign_key: 'interviews_id', autosave: true
 end

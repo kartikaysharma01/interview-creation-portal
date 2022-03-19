@@ -1,4 +1,4 @@
 class InterviewParticipantMapping < ApplicationRecord
-  belongs_to :participants
-  belongs_to :interviews
+  belongs_to :participant, foreign_key: "participants_id"
+  belongs_to :interview, foreign_key: "interviews_id"
 end
