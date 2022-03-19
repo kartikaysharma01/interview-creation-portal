@@ -9,4 +9,16 @@
     <%= interview.end_time %>
   </p>
 
+  <p>
+    <strong>Participants:</strong>
+    <%=
+      participant_id = interview.interview_participant_mappings.pluck(:participants_id)
+      participants = Participant.find(participant_id)
+      participants_name = []
+      participants.each { |participant|
+        participants_name.append(participant.name)
+      }
+      participants_name
+    %>
+  </p>
 </div>
