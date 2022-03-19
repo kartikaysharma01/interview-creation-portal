@@ -24,49 +24,13 @@ class InterviewsController < ApplicationController
     # binding.break
     @interview = Interview.new(start_time: interview_params[:start_time], end_time: interview_params[:end_time])
 
-    if interview_params[:start_time].blank?
-      @interview.errors.add(:start_time,'missing')
+    unless interview_params[:participants]
+      @interview.errors.add('Participants', ' missing. Atleast 2 required.')
       response_error(:bad_request) and return
     end
+    participants = Participant.find(interview_params[:participants])
 
-    if interview_params[:end_time].blank?
-      @interview.errors.add(:end_time,'missing')
-      response_error(:bad_request) and return
-    end
-
-    if interview_params[:end_time] < interview_params[:start_time]
-      @interview.errors.add(:end_time,'should be after start time')
-      response_error(:bad_request) and return
-    end
-
-    participant_ids = interview_params[:participants]
-    if !participant_ids || participant_ids.size < 2
-      @interview.errors.add(:participants, 'minimum 2 are required')
-      response_error(:bad_request) and return
-    end
-
-    participants = []
-
-    participant_ids.each do |participant_id|
-      participant = Participant.find(participant_id)
-      # this check isn't actually needed but good to have
-      unless participant
-        @interview.errors.add(:participants, 'not found')
-        response_error(:bad_request) and return
-      end
-      # check if any selected participants time clashes
-      participant.interview_participant_mappings.each do |interview_participant_mapping|
-        interview = interview_participant_mapping.interview
-        if time_overlap(interview[:start_time], interview[:end_time], interview_params[:start_time], interview_params[:end_time])
-          @interview.errors.add('Interview Clash: ', "Participant #{participant[:name]} has another interview between #{interview[:start_time]} - #{interview[:end_time]} for interview id #{interview[:id]}")
-          response_error(:conflict) and return
-        end
-      end
-      participants.append(participant)
-    end
-
-    # binding.break
-    participants.each do |participant|
+    participants&.each do |participant|
       @interview.interview_participant_mappings.build(interview: @interview, participant:)
     end
 
@@ -76,16 +40,39 @@ class InterviewsController < ApplicationController
       response_error(:unprocessable_entity)
     end
   end
+
   # PATCH/PUT /interviews/1 or /interviews/1.json
   def update
-    respond_to do |format|
-      if @interview.update(interview_params)
-        format.html { redirect_to interview_url(@interview), notice: "Interview was successfully updated." }
-        format.json { render :show, status: :ok, location: @interview }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @interview.errors, status: :unprocessable_entity }
+
+    unless interview_params[:participants]
+      @interview.errors.add('Participants', ' missing. Atleast 2 required.')
+      response_error(:bad_request) and return
+    end
+
+    existing_participant_ids = @interview.interview_participant_mappings.pluck(:participants_id)
+    updated_participant_ids = interview_params[:participants]
+
+    participants_to_delete = existing_participant_ids - updated_participant_ids
+    participants_to_add = updated_participant_ids - existing_participant_ids
+
+    participants_to_delete.each do |x|
+
+      z = @interview.interview_participant_mappings.find_by(participants_id: x)
+      @interview.interview_participant_mappings.delete(z)
+    end
+
+    unless participants_to_add.blank?
+      participants = Participant.find(participants_to_add)
+
+      participants&.each do |participant|
+        @interview.interview_participant_mappings.build(interview: @interview, participant:)
       end
+    end
+
+    if @interview.update(start_time: interview_params[:start_time], end_time: interview_params[:end_time])
+      response_success
+    else
+      response_error(:unprocessable_entity)
     end
   end
 
@@ -123,8 +110,4 @@ class InterviewsController < ApplicationController
         format.json { render json: @interview.errors, status: status }
       end
     end
-
-  def time_overlap(range_a_begin, range_a_end, range_b_begin, range_b_end)
-    range_b_begin <= range_a_end && range_a_begin <= range_b_end
-  end
 end

@@ -31,3 +31,7 @@
 
 en:
   hello: "Hello world"
+  activerecord:
+    attributes:
+      interview:
+        interview_participant_mappings: "Participants"
