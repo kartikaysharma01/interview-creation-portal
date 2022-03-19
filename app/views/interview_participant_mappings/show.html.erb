@@ -1,0 +1,10 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @interview_participant_mapping %>
+
+<div>
+  <%= link_to "Edit this interview participant mapping", edit_interview_participant_mapping_path(@interview_participant_mapping) %> |
+  <%= link_to "Back to interview participant mappings", interview_participant_mappings_path %>
+
+  <%= button_to "Destroy this interview participant mapping", @interview_participant_mapping, method: :delete %>
+</div>

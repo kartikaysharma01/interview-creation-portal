@@ -1,0 +1,27 @@
+<%= form_with(model: interview_participant_mapping) do |form| %>
+  <% if interview_participant_mapping.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(interview_participant_mapping.errors.count, "error") %> prohibited this interview_participant_mapping from being saved:</h2>
+
+      <ul>
+        <% interview_participant_mapping.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :participants_id, style: "display: block" %>
+    <%= form.text_field :participants_id %>
+  </div>
+
+  <div>
+    <%= form.label :interviews_id, style: "display: block" %>
+    <%= form.text_field :interviews_id %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

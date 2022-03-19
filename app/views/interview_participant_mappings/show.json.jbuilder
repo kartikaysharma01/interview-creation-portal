@@ -1,0 +1,1 @@
+json.partial! "interview_participant_mappings/interview_participant_mapping", interview_participant_mapping: @interview_participant_mapping

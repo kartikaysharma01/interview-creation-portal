@@ -1,0 +1,2 @@
+module InterviewParticipantMappingsHelper
+end

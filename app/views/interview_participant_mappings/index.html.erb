@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Interview participant mappings</h1>
+
+<div id="interview_participant_mappings">
+  <% @interview_participant_mappings.each do |interview_participant_mapping| %>
+    <%= render interview_participant_mapping %>
+    <p>
+      <%= link_to "Show this interview participant mapping", interview_participant_mapping %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New interview participant mapping", new_interview_participant_mapping_path %>
