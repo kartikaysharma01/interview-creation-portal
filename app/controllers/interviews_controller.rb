@@ -25,56 +25,57 @@ class InterviewsController < ApplicationController
     @interview = Interview.new(start_time: interview_params[:start_time], end_time: interview_params[:end_time])
 
     if interview_params[:start_time].blank?
-      @interview.errors.add(:start_time,"missing")
+      @interview.errors.add(:start_time,'missing')
       response_error(:bad_request) and return
     end
 
     if interview_params[:end_time].blank?
-      @interview.errors.add(:end_time,"missing")
+      @interview.errors.add(:end_time,'missing')
       response_error(:bad_request) and return
     end
 
     if interview_params[:end_time] < interview_params[:start_time]
-      @interview.errors.add(:end_time,"should be after start time")
+      @interview.errors.add(:end_time,'should be after start time')
       response_error(:bad_request) and return
     end
 
     participant_ids = interview_params[:participants]
     if !participant_ids || participant_ids.size < 2
-      @interview.errors.add(:participants, "minimum 2 are required")
+      @interview.errors.add(:participants, 'minimum 2 are required')
       response_error(:bad_request) and return
     end
 
     participants = []
 
-    participant_ids.each { |participant_id|
+    participant_ids.each do |participant_id|
       participant = Participant.find(participant_id)
       # this check isn't actually needed but good to have
       unless participant
-        @interview.errors.add(:participants, "not found")
+        @interview.errors.add(:participants, 'not found')
         response_error(:bad_request) and return
       end
       # check if any selected participants time clashes
-      participant.interview_participant_mappings.each { |interview_participant_mapping|
+      participant.interview_participant_mappings.each do |interview_participant_mapping|
         interview = interview_participant_mapping.interview
         if time_overlap(interview[:start_time], interview[:end_time], interview_params[:start_time], interview_params[:end_time])
-          @interview.errors.add('Interview Clash: ', "Participant " + participant[:name] + " has another interview between " +
-          interview[:start_time].to_s + " - " +  interview[:end_time].to_s + " for interview id " + interview[:id].to_s)
+          @interview.errors.add('Interview Clash: ', "Participant #{participant[:name]} has another interview between #{interview[:start_time]} - #{interview[:end_time]} for interview id #{interview[:id]}")
           response_error(:conflict) and return
         end
-      }
+      end
       participants.append(participant)
-    }
+    end
 
     # binding.break
-    participants.each { |participant|
-      binding.break
-      InterviewParticipantMapping.new(participant: participant, interview: @interview)
-    }
-    @interview.save
-    response_success
-  end
+    participants.each do |participant|
+      @interview.interview_participant_mappings.build(interview: @interview, participant:)
+    end
 
+    if @interview.save
+      response_success
+    else
+      response_error(:unprocessable_entity)
+    end
+  end
   # PATCH/PUT /interviews/1 or /interviews/1.json
   def update
     respond_to do |format|
